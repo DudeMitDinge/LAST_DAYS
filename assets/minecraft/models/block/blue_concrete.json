@@ -1,7 +1,0 @@
-{
-    "parent": "block/cube_column",
-    "textures": {
-        "end": "minecraft:block/blue_concrete_top",
-        "side": "minecraft:block/blue_concrete"
-  }
-}

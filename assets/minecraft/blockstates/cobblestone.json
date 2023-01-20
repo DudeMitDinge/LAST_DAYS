@@ -1,8 +1,0 @@
-{
-	"variants": {
-		"": [
-			{ "model": "block/cobblestone/cobblestone1", "weight": 10 },   
-			{ "model": "block/cobblestone/cobblestone2", "weight": 3 }
-		]
-	}
-}

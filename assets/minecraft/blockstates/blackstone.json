@@ -1,5 +1,0 @@
-{
-    "variants": {
-        "": [ { "model": "block/blackstone/blackstone", "weight": 25 }, { "model": "block/blackstone/blackstone1", "weight":25 }, { "model": "block/blackstone/blackstone2", "weight": 25 }, { "model": "block/blackstone/blackstone3", "weight": 25 }    ]
-    }
-}

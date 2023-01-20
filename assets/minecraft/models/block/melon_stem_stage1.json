@@ -1,9 +1,0 @@
-{
-  "parent": "minecraft:block/stem_growth1",
-  "textures": {
-    "0": "minecraft:block/melon_stem/melon_stem",
-    "1": "minecraft:block/melon_stem/melon_stem_ant",
-    "3": "minecraft:block/melon_stem/melon_stem_dish_back",
-    "2": "minecraft:block/melon_stem/melon_stem_dish"
-  }
-}
