@@ -40,7 +40,7 @@ BLOCK_SPECS = (
     AssetSpec(
         "assets/minecraft/textures/block/pale_oak_planks.png",
         "assets/minecraft/textures/block/pale_oak_planks.png",
-        "assets/minecraft/textures/block/pale_oak_planks.png",
+        "assets/minecraft/textures/block/oak_planks.png",
         "workbench/26.2/pale_oak/pale_oak_log_side_candidate_v1.png",
         replace_existing=True,
     ),
@@ -162,10 +162,32 @@ def resolve_from(root: Path, path: str | Path) -> Path:
     candidate = Path(path)
     return candidate.resolve() if candidate.is_absolute() else (root / candidate).resolve()
 
+def last_days_target_size(
+    pack_root: Path,
+    target: str,
+    official: Image.Image,
+) -> tuple[int, int]:
+    """Match the established Last Days Oak resolution when possible."""
 
-def apply_official_alpha(image: Image.Image, official: Image.Image) -> Image.Image:
-    rgba = image.convert("RGBA").resize(official.size, Image.Resampling.NEAREST)
-    rgba.putalpha(official.convert("RGBA").getchannel("A"))
+    oak_reference = pack_root / Path(target.replace("pale_oak", "oak"))
+    if oak_reference.is_file():
+        with Image.open(oak_reference) as image:
+            return image.size
+    return official.size
+
+
+
+
+def apply_official_alpha(
+    image: Image.Image,
+    official: Image.Image,
+    size: tuple[int, int],
+) -> Image.Image:
+    rgba = image.convert("RGBA").resize(size, Image.Resampling.NEAREST)
+    alpha = official.convert("RGBA").getchannel("A").resize(
+        size, Image.Resampling.NEAREST
+    )
+    rgba.putalpha(alpha)
     return rgba
 
 
@@ -246,7 +268,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Install only Pale Oak paths missing from the pack",
+        help="Install or refresh the complete Pale Oak family",
     )
     return parser.parse_args()
 
@@ -268,7 +290,7 @@ def main() -> int:
     previews: dict[str, dict[str, Image.Image]] = {
         group: {} for group in ALL_GROUPS
     }
-    results: list[dict[str, str]] = []
+    results: list[dict[str, object]] = []
 
     with ZipFile(client_jar_path) as client_jar:
         vanilla_cache: dict[str, Image.Image] = {}
@@ -281,15 +303,24 @@ def main() -> int:
         for group_name, specs in ALL_GROUPS.items():
             for spec in specs:
                 official_target = vanilla(spec.target)
+                target_size = last_days_target_size(
+                    pack_root,
+                    spec.target,
+                    official_target,
+                )
+                scaled_target = official_target.resize(
+                    target_size, Image.Resampling.NEAREST
+                )
                 if spec.direct_master:
                     candidate = apply_official_alpha(
                         styled(spec.direct_master),
                         official_target,
+                        target_size,
                     )
                 else:
                     assert spec.vanilla_base and spec.styled_base
                     candidate = transfer_structure(
-                        official_target,
+                        scaled_target,
                         vanilla(spec.vanilla_base),
                         styled(spec.styled_base),
                         strength=spec.strength,
@@ -313,20 +344,26 @@ def main() -> int:
                 destination = pack_root / relative_target
                 status = "candidate"
                 if args.apply:
-                    if destination.exists():
-                        if spec.replace_existing:
-                            shutil.copy2(candidate_path, destination)
-                            status = "refreshed"
-                        else:
-                            status = "skipped-existing"
-                    else:
-                        destination.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(candidate_path, destination)
-                        status = "installed"
+                    existed = destination.exists()
+                    if existed:
+                        backup = (
+                            candidate_root
+                            / "before_r5"
+                            / relative_target.relative_to(
+                                "assets/minecraft/textures"
+                            )
+                        )
+                        backup.parent.mkdir(parents=True, exist_ok=True)
+                        if not backup.exists():
+                            shutil.copy2(destination, backup)
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(candidate_path, destination)
+                    status = "refreshed" if existed else "installed"
                 results.append(
                     {
                         "asset": destination.as_posix(),
                         "candidate": candidate_path.as_posix(),
+                        "size": list(candidate.size),
                         "status": status,
                     }
                 )
