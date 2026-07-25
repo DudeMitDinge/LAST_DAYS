@@ -12,3 +12,11 @@ assets/minecraft/textures/block/desktop.ini
 LAST_DAYS.zip
 
 *.zip
+
+.cache/*
+!.cache/.gitkeep
+__pycache__/
+*.pyc
+dist/
+reports/
+workbench/

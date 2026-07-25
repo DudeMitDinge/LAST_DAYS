@@ -1,13 +1,15 @@
 {
 	"pack": {
-		"pack_format": 34,
-		"description": "A 32x32 Post Apocalyptic pack."
+		"pack_format": 88.0,
+		"min_format": [88, 0],
+		"max_format": [88, 0],
+		"description": "LAST DAYS Revival - 32x post-apocalyptic pack for Minecraft 26.2"
 	},
-	"language":{
-		"en_ld":{
-			"name":"LAST DAYS",
-			"region":"The Wastes",
-			"bidirectional":false
+	"language": {
+		"en_ld": {
+			"name": "LAST DAYS",
+			"region": "The Wastes",
+			"bidirectional": false
 		}
 	}
 }

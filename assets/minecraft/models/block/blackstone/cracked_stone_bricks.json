@@ -1,6 +1,5 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "minecraft:block/blackstone/cracked_stone_bricks"
-  }
+    "all": "minecraft:block/cracked_stone_bricks"  }
 }
