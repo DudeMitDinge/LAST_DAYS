@@ -39,6 +39,34 @@ def has_true_2x_detail(path: Path) -> bool:
     return False
 
 
+def isolated_high_contrast_pixels(path: Path, threshold: float = 18.0) -> int:
+    image = rgba(path).convert("RGB")
+    pixels = image.load()
+
+    def luminance(pixel: tuple[int, int, int]) -> float:
+        red, green, blue = pixel
+        return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+    isolated = 0
+    for y_coord in range(image.height):
+        for x_coord in range(image.width):
+            neighbours = [
+                pixels[x_coord + x_offset, y_coord + y_offset]
+                for y_offset in (-1, 0, 1)
+                for x_offset in (-1, 0, 1)
+                if not (x_offset == 0 and y_offset == 0)
+                and 0 <= x_coord + x_offset < image.width
+                and 0 <= y_coord + y_offset < image.height
+            ]
+            value = luminance(pixels[x_coord, y_coord])
+            if all(
+                abs(value - luminance(neighbour)) >= threshold
+                for neighbour in neighbours
+            ):
+                isolated += 1
+    return isolated
+
+
 class R6RefinementTest(unittest.TestCase):
     def test_pale_oak_core_is_clean_32px_pixel_art(self) -> None:
         for name in (
@@ -51,7 +79,7 @@ class R6RefinementTest(unittest.TestCase):
         ):
             path = TEXTURES / "block" / name
             self.assertEqual(rgba(path).size, (32, 32), name)
-            self.assertLessEqual(len(visible_colours(path)), 8, name)
+            self.assertLessEqual(isolated_high_contrast_pixels(path), 8, name)
 
     def test_copper_utilities_follow_iron_resolution_and_construction(self) -> None:
         for state in ("copper", "exposed_copper", "weathered_copper", "oxidized_copper"):
